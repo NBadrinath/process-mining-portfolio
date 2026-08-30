@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Process Analysis Results</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar results-topbar">
+  <div class="wrap">
+    <a href="index.html" style="text-decoration:none;"><div class="brand">Badri <span>//</span> Process Mining</div></a>
+    <a href="index.html#analyzer" class="btn btn-ghost" style="padding:9px 18px;font-size:0.82rem;">&larr; Analyze another file</a>
+  </div>
+</div>
+
+<div id="waitingState" class="results-waiting">
+  <div class="eyebrow" style="justify-content:center;">Process analysis</div>
+  <h1>Waiting for your data&hellip;</h1>
+  <p>This page fills in automatically when you upload a file from the portfolio's analyzer. If you opened it directly, head back and try again.</p>
+  <a href="index.html#analyzer" class="btn btn-primary">Go to the analyzer</a>
+</div>
+
+<div id="resultsRoot" class="results-page-wrap" style="display:none;">
+  <div class="results-page-header">
+    <div class="eyebrow" id="resultsEyebrow">Process analysis</div>
+    <h1 id="resultsTitle">Your process, mapped</h1>
+    <p class="lede" id="resultsSubtitle"></p>
+  </div>
+  <div id="resultsBody"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+(function(){
+  const waitingState = document.getElementById('waitingState');
+  const resultsRoot = document.getElementById('resultsRoot');
+  const resultsTitle = document.getElementById('resultsTitle');
+  const resultsSubtitle = document.getElementById('resultsSubtitle');
+  const resultsBody = document.getElementById('resultsBody');
+  let chartInstance = null;
+  let received = false;
+
+  function sendReady(){
+    if(window.opener && !received){
+      try{ window.opener.postMessage({type:'pm-ready'}, '*'); }catch(e){}
+    }
+  }
+  sendReady();
+  setTimeout(sendReady, 150);
+  setTimeout(sendReady, 500);
+  setTimeout(sendReady, 1200);
+
+  window.addEventListener('message', function(e){
+    if(e.source === window.opener && e.data && e.data.type === 'pm-data' && !received){
+      received = true;
+      waitingState.style.display = 'none';
+      resultsRoot.style.display = 'block';
+      runAnalysis(e.data.rows, e.data.label || 'Your data');
+    }
+  });
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function truncateLabel(s, n){ return s.length > n ? s.slice(0, n-1) + '\u2026' : s; }
+  function kpiCard(num, label){
+    return '<div class="kpi-card"><div class="kpi-num">' + num + '</div><div class="kpi-label">' + label + '</div></div>';
+  }
+
+  function runAnalysis(rows, label){
+    rows = rows.filter(r => Object.values(r).some(v => v !== null && v !== '' && v !== undefined));
+    if(!rows.length){
+      resultsBody.innerHTML = '<div class="error-box">That file looks empty — no rows found.</div>';
+      return;
+    }
+
+    const columns = Object.keys(rows[0]);
+    const totalCells = rows.length * columns.length;
+    let missing = 0;
+    rows.forEach(r => columns.forEach(c => { if(r[c] === null || r[c] === '' || r[c] === undefined) missing++; }));
+    const missingPct = ((missing/totalCells)*100).toFixed(1);
+
+    const numericCols = columns.filter(c => {
+      const vals = rows.map(r=>r[c]).filter(v=>v!==null && v!=='');
+      if(!vals.length) return false;
+      return vals.every(v => typeof v === 'number' || (!isNaN(parseFloat(v)) && isFinite(v)));
+    });
+
+    const caseCol = columns.find(c => /case/i.test(c));
+    const activityCol = columns.find(c => /activity|event|task|step/i.test(c));
+    const timeCol = columns.find(c => /time|date/i.test(c));
+
+    let processStats = null;
+    if(caseCol && activityCol){
+      processStats = computeProcessStats(rows, caseCol, activityCol, timeCol);
+    }
+
+    resultsTitle.textContent = processStats ? 'Your process, mapped' : 'Your data, profiled';
+    resultsSubtitle.textContent = escapeHtml(label) + ' \u00b7 ' + rows.length.toLocaleString() + ' rows \u00b7 ' + columns.length + ' columns' +
+      (processStats ? ' \u00b7 ' + processStats.caseCount.toLocaleString() + ' cases' : '');
+
+    let html = '';
+    html += '<div class="results-grid">';
+    html += kpiCard(rows.length.toLocaleString(), 'Rows');
+    html += kpiCard(columns.length, 'Columns');
+    html += kpiCard(missingPct + '%', 'Missing values');
+    if(processStats){
+      html += kpiCard(processStats.caseCount.toLocaleString(), 'Unique cases');
+    } else {
+      html += kpiCard(numericCols.length, 'Numeric columns');
+    }
+    html += '</div>';
+
+    if(processStats){
+      html += '<div class="results-grid">';
+      html += kpiCard(processStats.activityCount, 'Unique activities');
+      html += kpiCard(processStats.avgEventsPerCase.toFixed(1), 'Avg. events / case');
+      if(processStats.avgDurationDays !== null){
+        html += kpiCard(processStats.avgDurationDays.toFixed(1) + 'd', 'Avg. case duration');
+        html += kpiCard(processStats.medianDurationDays.toFixed(1) + 'd', 'Median case duration');
+      }
+      html += '</div>';
+
+      html += '<div class="results-detail">';
+      html += '<h4>Detected as a process event log <span class="badge-detected">Case: ' + escapeHtml(caseCol) + ' \u00b7 Activity: ' + escapeHtml(activityCol) + (timeCol ? ' \u00b7 Timestamp: ' + escapeHtml(timeCol) : '') + '</span></h4>';
+      html += '<div class="chart-wrap"><canvas id="activityChart" height="180"></canvas></div>';
+      html += '</div>';
+
+      html += '<div class="results-detail"><h4>Process map <span style="font-family:var(--font-mono);font-size:0.7rem;color:var(--text-dim);font-weight:400;">\u2014 filter and replay, like Celonis Process Explorer</span></h4>';
+      html += '<div class="pmap-controls">';
+      html += '<div class="pmap-slider-group"><label for="activitySlider">Activities <span id="activityValueLabel"></span></label><input type="range" id="activitySlider" min="1" max="1" value="1"></div>';
+      html += '<div class="pmap-slider-group"><label for="connectionSlider">Connections <span id="connectionValueLabel"></span></label><input type="range" id="connectionSlider" min="1" max="1" value="1"></div>';
+      html += '</div>';
+      html += '<div id="processMapWrap"></div>';
+      html += '<div class="pmap-legend">Line thickness = case volume &middot; dashed curved lines = rework or loops &middot; node size = activity frequency &middot; teal ring = start activity</div>';
+      html += '<div class="pmap-playback">';
+      html += '<button id="playBtn" class="pmap-btn" type="button">&#9654; Play</button>';
+      html += '<button id="pauseBtn" class="pmap-btn" type="button">&#10074;&#10074; Pause</button>';
+      html += '<button id="resetBtn" class="pmap-btn" type="button">&#8635; Reset</button>';
+      html += '<select id="speedSelect" class="pmap-speed"><option value="1">1&times;</option><option value="2" selected>2&times;</option><option value="4">4&times;</option></select>';
+      html += '<span class="pmap-playback-status" id="playbackStatus"></span>';
+      html += '</div></div>';
+
+      if(processStats.topTransitions.length){
+        html += '<div class="results-detail"><h4>Most common transitions</h4><ul class="flow-list">';
+        processStats.topTransitions.forEach(t => {
+          html += '<li>' + escapeHtml(t.from) + ' \u2192 ' + escapeHtml(t.to) + ' <span>' + t.count + ' cases</span></li>';
+        });
+        html += '</ul></div>';
+      }
+    } else {
+      html += '<div class="results-detail"><h4>Column overview</h4><table class="col-table"><thead><tr><th>Column</th><th>Type</th><th>Sample value</th></tr></thead><tbody>';
+      columns.slice(0,14).forEach(c=>{
+        const sample = rows.find(r => r[c] !== null && r[c] !== '');
+        const val = sample ? sample[c] : '';
+        const type = numericCols.includes(c) ? 'Numeric' : 'Text';
+        html += '<tr><td>' + escapeHtml(c) + '</td><td>' + type + '</td><td>' + escapeHtml(val) + '</td></tr>';
+      });
+      html += '</tbody></table>';
+      if(columns.length > 14) html += '<p style="margin-top:10px;color:var(--text-dim);font-size:0.82rem;">+ ' + (columns.length-14) + ' more columns</p>';
+      html += '<p style="margin-top:14px;color:var(--text-dim);font-size:0.85rem;">No Case ID / Activity columns detected \u2014 showing a general profile instead of process KPIs. Rename your columns to include "Case", "Activity", and "Timestamp" for a full process read.</p>';
+      html += '</div>';
+    }
+
+    resultsBody.innerHTML = html;
+
+    if(processStats){
+      initProcessMapInteractive(processStats);
+
+      const ctx = document.getElementById('activityChart');
+      if(chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: processStats.topActivities.map(a=>a.name),
+          datasets: [{
+            label: 'Frequency',
+            data: processStats.topActivities.map(a=>a.count),
+            backgroundColor: '#E8A33D',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#0F1B24', font: { family: 'IBM Plex Mono', size: 10 } }, grid: { display:false } },
+            y: { ticks: { color: '#0F1B24' }, grid: { color: 'rgba(15,27,36,0.08)' } }
+          }
+        }
+      });
+    }
+  }
+
+  function computeProcessStats(rows, caseCol, activityCol, timeCol){
+    const caseMap = {};
+    rows.forEach(r => {
+      const cid = r[caseCol];
+      if(cid === null || cid === undefined || cid === '') return;
+      if(!caseMap[cid]) caseMap[cid] = [];
+      caseMap[cid].push(r);
+    });
+
+    const caseIds = Object.keys(caseMap);
+    const activityFreq = {};
+    const startFreq = {};
+    let durations = [];
+    const transitionFreq = {};
+    const caseSequences = [];
+
+    caseIds.forEach(cid => {
+      let events = caseMap[cid];
+      if(timeCol){
+        events = events.slice().sort((a,b) => new Date(a[timeCol]) - new Date(b[timeCol]));
+      }
+      if(events.length){
+        const startAct = String(events[0][activityCol]);
+        startFreq[startAct] = (startFreq[startAct]||0) + 1;
+      }
+      caseSequences.push({
+        caseId: cid,
+        events: events.map(e => ({
+          activity: String(e[activityCol]),
+          time: timeCol ? new Date(e[timeCol]).getTime() : null
+        }))
+      });
+      events.forEach(e => {
+        const act = String(e[activityCol]);
+        activityFreq[act] = (activityFreq[act]||0) + 1;
+      });
+      for(let i=0;i<events.length-1;i++){
+        const from = String(events[i][activityCol]);
+        const to = String(events[i+1][activityCol]);
+        const key = from + '||' + to;
+        transitionFreq[key] = (transitionFreq[key]||0) + 1;
+      }
+      if(timeCol && events.length > 1){
+        const t0 = new Date(events[0][timeCol]);
+        const t1 = new Date(events[events.length-1][timeCol]);
+        const diffMs = t1 - t0;
+        if(!isNaN(diffMs) && diffMs >= 0) durations.push(diffMs / (1000*60*60*24));
+      }
+    });
+
+    const topActivities = Object.entries(activityFreq)
+      .sort((a,b)=>b[1]-a[1]).slice(0,8)
+      .map(([name,count])=>({name,count}));
+
+    const allActivitiesSorted = Object.entries(activityFreq)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([name,count])=>({name,count}));
+
+    const topTransitions = Object.entries(transitionFreq)
+      .sort((a,b)=>b[1]-a[1]).slice(0,5)
+      .map(([key,count])=>{ const [from,to] = key.split('||'); return {from,to,count}; });
+
+    durations.sort((a,b)=>a-b);
+    const avgDurationDays = durations.length ? durations.reduce((a,b)=>a+b,0)/durations.length : null;
+    const medianDurationDays = durations.length ? durations[Math.floor(durations.length/2)] : null;
+
+    return {
+      caseCount: caseIds.length,
+      activityCount: Object.keys(activityFreq).length,
+      avgEventsPerCase: rows.length / caseIds.length,
+      avgDurationDays,
+      medianDurationDays,
+      topActivities,
+      allActivitiesSorted,
+      topTransitions,
+      startFreq,
+      transitionFreqFull: transitionFreq,
+      caseSequences,
+      hasTime: !!timeCol
+    };
+  }
+
+  function buildProcessMapSVG(nodes, edges, startFreq){
+    const nodeNames = nodes.map(n => n.name);
+    const maxNodeCount = Math.max(...nodes.map(n => n.count), 1);
+    const maxEdgeCount = edges.length ? Math.max(...edges.map(e => e.count)) : 1;
+
+    const adj = {};
+    nodeNames.forEach(n => adj[n] = []);
+    edges.forEach(e => { if(e.from !== e.to && adj[e.from]) adj[e.from].push(e.to); });
+
+    let starts = nodeNames.filter(n => startFreq[n] > 0).sort((a,b) => (startFreq[b]||0) - (startFreq[a]||0));
+    if(!starts.length) starts = [nodeNames[0]];
+
+    const level = {};
+    starts.forEach(s => level[s] = 0);
+    let queue = starts.slice();
+    while(queue.length){
+      const cur = queue.shift();
+      (adj[cur]||[]).forEach(next => {
+        if(level[next] === undefined){
+          level[next] = level[cur] + 1;
+          queue.push(next);
+        }
+      });
+    }
+    let maxLevelSoFar = Math.max(0, ...Object.values(level));
+    nodeNames.forEach(n => { if(level[n] === undefined) level[n] = maxLevelSoFar + 1; });
+
+    const byLevel = {};
+    nodeNames.forEach(n => {
+      const l = level[n];
+      if(!byLevel[l]) byLevel[l] = [];
+      byLevel[l].push(n);
+    });
+    const levels = Object.keys(byLevel).map(Number).sort((a,b) => a-b);
+    const levelSpacing = 168;
+    const maxRows = Math.max(...levels.map(l => byLevel[l].length));
+    const width = levels.length * levelSpacing + 130;
+    const height = Math.max(280, maxRows * 100 + 120);
+
+    const pos = {};
+    levels.forEach((l, li) => {
+      const namesInLevel = byLevel[l];
+      const n = namesInLevel.length;
+      namesInLevel.forEach((name, i) => {
+        const x = 70 + li * levelSpacing;
+        const y = (height / (n+1)) * (i+1);
+        pos[name] = {x, y};
+      });
+    });
+
+    function radius(count){ return 16 + (count/maxNodeCount) * 14; }
+
+    let svg = '<svg class="flow-svg" viewBox="0 0 ' + width + ' ' + height + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Process map generated from your data">';
+    svg += '<defs><marker id="pmapArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0F1B24"/></marker></defs>';
+
+    edges.forEach(e => {
+      const p1 = pos[e.from], p2 = pos[e.to];
+      if(!p1 || !p2) return;
+      const w = (1.4 + (e.count/maxEdgeCount) * 5.2).toFixed(1);
+      const midX = (p1.x+p2.x)/2, midY = (p1.y+p2.y)/2;
+      if(e.from === e.to){
+        svg += '<path class="pmap-edge-loop" stroke-width="' + w + '" d="M ' + (p1.x-8) + ' ' + (p1.y-20) + ' C ' + (p1.x-42) + ' ' + (p1.y-58) + ', ' + (p1.x+42) + ' ' + (p1.y-58) + ', ' + (p1.x+8) + ' ' + (p1.y-20) + '" marker-end="url(#pmapArrow)"/>';
+        svg += '<text class="pmap-edge-label" x="' + p1.x + '" y="' + (p1.y-62) + '" text-anchor="middle">' + e.count + '</text>';
+      } else if(level[e.to] <= level[e.from]){
+        const dy = Math.max(46, Math.abs(p2.x-p1.x) * 0.3);
+        const baseY = Math.max(p1.y, p2.y) + dy;
+        svg += '<path class="pmap-edge-loop" stroke-width="' + w + '" d="M ' + p1.x + ' ' + (p1.y+18) + ' C ' + p1.x + ' ' + (baseY) + ', ' + p2.x + ' ' + (baseY) + ', ' + p2.x + ' ' + (p2.y+18) + '" marker-end="url(#pmapArrow)"/>';
+        svg += '<text class="pmap-edge-label" x="' + midX + '" y="' + (baseY+12) + '" text-anchor="middle">' + e.count + '</text>';
+      } else {
+        svg += '<path class="pmap-edge" stroke-width="' + w + '" d="M ' + p1.x + ' ' + p1.y + ' C ' + midX + ' ' + p1.y + ', ' + midX + ' ' + p2.y + ', ' + p2.x + ' ' + p2.y + '" marker-end="url(#pmapArrow)"/>';
+        svg += '<text class="pmap-edge-label" x="' + midX + '" y="' + (midY-8) + '" text-anchor="middle">' + e.count + '</text>';
+      }
+    });
+
+    nodeNames.forEach(name => {
+      const p = pos[name];
+      const nodeData = nodes.find(n => n.name === name);
+      const r = radius(nodeData ? nodeData.count : 1);
+      const isStart = starts.includes(name);
+      svg += '<g class="pmap-node' + (isStart ? ' pmap-start' : '') + '"><circle cx="' + p.x + '" cy="' + p.y + '" r="' + r + '"/></g>';
+      svg += '<text x="' + p.x + '" y="' + (p.y + r + 16) + '" text-anchor="middle" class="pmap-node-label">' + truncateLabel(String(name), 16) + '</text>';
+    });
+
+    svg += '</svg>';
+    return {svg, pos, starts};
+  }
+
+  function initProcessMapInteractive(stats){
+    const allEdgesFull = Object.entries(stats.transitionFreqFull)
+      .map(([key, count]) => { const parts = key.split('||'); return {from: parts[0], to: parts[1], count}; })
+      .sort((a,b) => b.count - a.count);
+    const allActivities = stats.allActivitiesSorted;
+
+    const activitySlider = document.getElementById('activitySlider');
+    const connectionSlider = document.getElementById('connectionSlider');
+    const activityLabel = document.getElementById('activityValueLabel');
+    const connectionLabel = document.getElementById('connectionValueLabel');
+    const mapWrap = document.getElementById('processMapWrap');
+    const playbackStatus = document.getElementById('playbackStatus');
+    if(!activitySlider || !connectionSlider || !mapWrap) return;
+
+    activitySlider.max = allActivities.length;
+    activitySlider.value = Math.min(8, allActivities.length);
+    connectionSlider.max = Math.max(1, allEdgesFull.length);
+    connectionSlider.value = Math.min(10, allEdgesFull.length || 1);
+
+    const pmap = { pos:{}, tracks:[], elapsed:0, playing:false, duration:12000, speed:2, rafId:null, lastTs:0 };
+
+    function currentNodes(){
+      return allActivities.slice(0, parseInt(activitySlider.value, 10));
+    }
+    function currentEdges(nodes){
+      const set = new Set(nodes.map(n => n.name));
+      const filtered = allEdgesFull.filter(e => set.has(e.from) && set.has(e.to));
+      return filtered.slice(0, parseInt(connectionSlider.value, 10));
+    }
+
+    function prepareTracks(nodes){
+      const nodeSet = new Set(nodes.map(n => n.name));
+      let seqs = stats.caseSequences
+        .map(cs => ({ caseId: cs.caseId, events: cs.events.filter(e => nodeSet.has(e.activity)) }))
+        .filter(cs => cs.events.length > 1);
+
+      const MAX_TOKENS = 40;
+      if(seqs.length > MAX_TOKENS){
+        const step = seqs.length / MAX_TOKENS;
+        const sampled = [];
+        for(let i=0;i<MAX_TOKENS;i++) sampled.push(seqs[Math.floor(i*step)]);
+        seqs = sampled;
+      }
+
+      let minT = Infinity, maxT = -Infinity;
+      if(stats.hasTime){
+        seqs.forEach(cs => cs.events.forEach(e => {
+          if(e.time !== null){ if(e.time < minT) minT = e.time; if(e.time > maxT) maxT = e.time; }
+        }));
+      }
+      const useTime = stats.hasTime && isFinite(minT) && maxT > minT;
+
+      pmap.tracks = seqs.map((cs, idx) => {
+        const waypoints = cs.events.map(e => pmap.pos[e.activity]).filter(Boolean);
+        let startFrac, endFrac, wpFracs;
+        if(useTime){
+          startFrac = (cs.events[0].time - minT) / (maxT - minT);
+          endFrac = (cs.events[cs.events.length-1].time - minT) / (maxT - minT);
+          const span = Math.max(1, cs.events[cs.events.length-1].time - cs.events[0].time);
+          wpFracs = cs.events.map(e => (e.time - cs.events[0].time) / span);
+        } else {
+          startFrac = idx / seqs.length;
+          endFrac = Math.min(1, startFrac + (1/seqs.length) * 1.4);
+          wpFracs = cs.events.map((e,i) => i / ((cs.events.length-1) || 1));
+        }
+        return {
+          caseId: cs.caseId,
+          waypoints,
+          wpFracs,
+          startMs: startFrac * pmap.duration,
+          endMs: Math.max(endFrac * pmap.duration, startFrac * pmap.duration + 600)
+        };
+      }).filter(t => t.waypoints.length > 1);
+
+      const svgEl = mapWrap.querySelector('svg');
+      if(svgEl){
+        const ns = 'http://www.w3.org/2000/svg';
+        const g = document.createElementNS(ns, 'g');
+        g.setAttribute('id', 'tokenLayer');
+        pmap.tracks.forEach((t, i) => {
+          const c = document.createElementNS(ns, 'circle');
+          c.setAttribute('r', '5');
+          c.setAttribute('class', 'pmap-token');
+          c.setAttribute('cx', t.waypoints[0].x);
+          c.setAttribute('cy', t.waypoints[0].y);
+          c.setAttribute('opacity', '0');
+          c.setAttribute('id', 'token-' + i);
+          g.appendChild(c);
+        });
+        svgEl.appendChild(g);
+      }
+    }
+
+    function rebuild(){
+      stopPlayback();
+      const nodes = currentNodes();
+      const edges = currentEdges(nodes);
+      activityLabel.textContent = nodes.length + ' / ' + allActivities.length;
+      connectionLabel.textContent = edges.length + ' / ' + allEdgesFull.length;
+      const built = buildProcessMapSVG(nodes, edges, stats.startFreq);
+      mapWrap.innerHTML = built.svg;
+      pmap.pos = built.pos;
+      pmap.elapsed = 0;
+      prepareTracks(nodes);
+      playbackStatus.textContent = pmap.tracks.length + ' cases ready to animate';
+    }
+
+    function interp(t, elapsed){
+      const last = t.waypoints[t.waypoints.length-1];
+      if(elapsed < t.startMs) return {x:t.waypoints[0].x, y:t.waypoints[0].y, visible:false};
+      if(elapsed >= t.endMs) return {x:last.x, y:last.y, visible:true, done:true};
+      const localP = (elapsed - t.startMs) / Math.max(1, (t.endMs - t.startMs));
+      let segIdx = 0;
+      for(let i=0;i<t.wpFracs.length-1;i++){
+        segIdx = i;
+        if(localP >= t.wpFracs[i] && localP <= t.wpFracs[i+1]) break;
+      }
+      const f0 = t.wpFracs[segIdx], f1 = t.wpFracs[segIdx+1] !== undefined ? t.wpFracs[segIdx+1] : 1;
+      const segP = f1 > f0 ? (localP - f0) / (f1 - f0) : 0;
+      const p0 = t.waypoints[segIdx], p1 = t.waypoints[segIdx+1] || p0;
+      return { x: p0.x + (p1.x-p0.x)*segP, y: p0.y + (p1.y-p0.y)*segP, visible:true };
+    }
+
+    function tick(ts){
+      if(!pmap.lastTs) pmap.lastTs = ts;
+      const dt = ts - pmap.lastTs;
+      pmap.lastTs = ts;
+      pmap.elapsed += dt * pmap.speed;
+      if(pmap.elapsed > pmap.duration) pmap.elapsed = 0;
+
+      pmap.tracks.forEach((t, i) => {
+        const el = document.getElementById('token-' + i);
+        if(!el) return;
+        const r = interp(t, pmap.elapsed);
+        el.setAttribute('cx', r.x);
+        el.setAttribute('cy', r.y);
+        el.setAttribute('opacity', r.visible ? (r.done ? '0.35' : '1') : '0');
+      });
+
+      if(pmap.playing) pmap.rafId = requestAnimationFrame(tick);
+    }
+
+    function playPlayback(){
+      if(!pmap.tracks.length) return;
+      pmap.playing = true;
+      pmap.lastTs = 0;
+      playbackStatus.textContent = 'Playing ' + pmap.tracks.length + ' cases\u2026';
+      pmap.rafId = requestAnimationFrame(tick);
+    }
+    function stopPlayback(){
+      pmap.playing = false;
+      if(pmap.rafId) cancelAnimationFrame(pmap.rafId);
+      pmap.rafId = null;
+    }
+    function resetPlayback(){
+      stopPlayback();
+      pmap.elapsed = 0;
+      pmap.lastTs = 0;
+      pmap.tracks.forEach((t, i) => {
+        const el = document.getElementById('token-' + i);
+        if(el){ el.setAttribute('cx', t.waypoints[0].x); el.setAttribute('cy', t.waypoints[0].y); el.setAttribute('opacity','0'); }
+      });
+      playbackStatus.textContent = pmap.tracks.length + ' cases ready to animate';
+    }
+
+    document.getElementById('playBtn').onclick = playPlayback;
+    document.getElementById('pauseBtn').onclick = stopPlayback;
+    document.getElementById('resetBtn').onclick = resetPlayback;
+    document.getElementById('speedSelect').onchange = (e) => { pmap.speed = parseFloat(e.target.value); };
+    activitySlider.oninput = rebuild;
+    connectionSlider.oninput = rebuild;
+
+    rebuild();
+  }
+})();
+</script>
+</body>
+</html>
