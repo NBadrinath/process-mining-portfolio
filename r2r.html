@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Record-to-Report Process Mining — Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <a href="index.html" style="text-decoration:none;"><div class="brand">Badri <span>//</span> Process Mining</div></a>
+    <nav>
+      <ul>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#usecases">Use cases</a></li>
+        <li><a href="index.html#analyzer">Try it</a></li>
+        <li><a href="index.html#contact" class="nav-cta">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<section class="uc-hero">
+  <div class="wrap">
+    <a href="index.html" class="back-link">&larr; Back to portfolio</a>
+    <div class="eyebrow">Record-to-Report (R2R)</div>
+    <h1>A slow close usually isn't a headcount problem — it's a process variant problem.</h1>
+    <p class="lede">Manual journal entries, reconciliation lag, and inconsistent close calendars quietly stretch the close every single period. Mining the close process shows exactly which task is the critical path.</p>
+    <div class="hero-cta">
+      <a href="index.html#analyzer" class="btn btn-primary">Try the analyzer on your data</a>
+      <a href="index.html#contact" class="btn btn-ghost">Get in touch</a>
+    </div>
+  </div>
+</section>
+
+<section class="pain-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Where the value hides</div>
+      <h2>Three patterns that show up in almost every R2R event log</h2>
+      <p>Each one is a distinct, replayable path variant once close-task data is mined against actual timestamps.</p>
+    </div>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <span class="pain-num">01 &middot; Rework</span>
+        <h4>Manual journal entries</h4>
+        <p>A high share of manual entries versus automated postings drives both close duration and error/rework risk — and it's rarely evenly distributed across entities.</p>
+      </div>
+      <div class="pain-card">
+        <span class="pain-num">02 &middot; Delay</span>
+        <h4>Reconciliation bottlenecks</h4>
+        <p>Subledger-to-GL reconciliation lagging behind the close calendar is often the single biggest driver of late close, especially for intercompany accounts.</p>
+      </div>
+      <div class="pain-card">
+        <span class="pain-num">03 &middot; Variance</span>
+        <h4>Inconsistent close calendars</h4>
+        <p>Different entities or regions following different close sequences make it hard to see where the group-level bottleneck actually sits.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="kpi-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">KPIs this engagement moves</div>
+      <h2>The metrics a steering committee actually tracks</h2>
+    </div>
+    <div class="kpi-detail-grid">
+      <div class="kpi-detail-card">
+        <h4>Close cycle duration</h4>
+        <div class="kpi-range"><span class="from">10 days</span><span class="arrow">&rarr;</span><span class="to">5 days</span></div>
+        <p>Total business days from period-end to books-closed — mining shows which task is actually the critical path, period over period.</p>
+      </div>
+      <div class="kpi-detail-card">
+        <h4>Manual journal entry rate</h4>
+        <div class="kpi-range"><span class="from">35%</span><span class="arrow">&rarr;</span><span class="to">14%</span></div>
+        <p>Share of journal entries posted manually rather than through automated sub-ledger feeds — a direct proxy for close risk.</p>
+      </div>
+      <div class="kpi-detail-card">
+        <h4>Reconciliation lag</h4>
+        <div class="kpi-range"><span class="from">6 days</span><span class="arrow">&rarr;</span><span class="to">2 days</span></div>
+        <p>Days between period-end and subledger-to-GL reconciliation completion, isolated by entity and account group.</p>
+      </div>
+      <div class="kpi-detail-card">
+        <h4>First-time-right close rate</h4>
+        <div class="kpi-range"><span class="from">65%</span><span class="arrow">&rarr;</span><span class="to">90%+</span></div>
+        <p>Share of close tasks completed without rework or reopening — the clearest signal of close process stability.</p>
+      </div>
+    </div>
+    <p class="kpi-caveat">Ranges are typical benchmarks observed across similar R2R landscapes, not a guarantee for any specific client — actual movement depends on your process maturity, ERP configuration, and data quality.</p>
+  </div>
+</section>
+
+<section class="method-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">How I approach it</div>
+      <h2>From raw close-task logs to a prioritized fix list</h2>
+    </div>
+    <div class="method-steps">
+      <div class="method-step">
+        <div class="step-index">01</div>
+        <div><h4>Extract &amp; model the event log</h4><p>Pull journal entry, task-management, and reconciliation tool data and reconstruct the true close-cycle case structure across entities.</p></div>
+      </div>
+      <div class="method-step">
+        <div class="step-index">02</div>
+        <div><h4>Build the KPI tree</h4><p>Define close duration, manual entry rate, and reconciliation-lag KPIs in PQL, validated against controllership's own close reporting.</p></div>
+      </div>
+      <div class="method-step">
+        <div class="step-index">03</div>
+        <div><h4>Surface deviations &amp; root causes</h4><p>Replay the close to find which entity, account group, or task owner is consistently on the critical path — not just that the close runs long.</p></div>
+      </div>
+      <div class="method-step">
+        <div class="step-index">04</div>
+        <div><h4>Quantify business impact</h4><p>Translate each deviation into close-days and rework hours, so the fix list is ranked by value, not noise.</p></div>
+      </div>
+      <div class="method-step">
+        <div class="step-index">05</div>
+        <div><h4>Prioritize &amp; support the fix</h4><p>Work with controllership to pilot task automation or resequencing, then track the KPI tree across the next close to confirm it moved.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="uc-cta-section">
+  <div class="wrap">
+    <h2>Want to see this on your own close-task data?</h2>
+    <p>Upload a sample export to the live analyzer and get a first read in seconds — nothing leaves your browser.</p>
+    <div class="uc-cta-buttons">
+      <a href="index.html#analyzer" class="btn btn-primary">Try the analyzer</a>
+      <a href="index.html#contact" class="btn btn-ghost">Talk to me</a>
+    </div>
+  </div>
+</section>
+
+<section class="related-ucs">
+  <div class="wrap">
+    <h3>Other use cases</h3>
+    <div class="related-grid">
+      <a href="p2p.html" class="related-card"><span class="rc-name">Procure-to-Pay</span><span class="rc-arrow">&rarr;</span></a>
+      <a href="o2c.html" class="related-card"><span class="rc-name">Order-to-Cash</span><span class="rc-arrow">&rarr;</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <h2>Have a process worth looking at?</h2>
+      <div class="foot-links">
+        <a href="mailto:hello@example.com">hello@example.com</a>
+        <a href="index.html#usecases">Use cases</a>
+        <a href="index.html#analyzer">Try the analyzer</a>
+      </div>
+    </div>
+    <div class="foot-meta">Celonis EMS &middot; PQL &middot; Process mining &middot; Based in Andhra Pradesh, working globally</div>
+  </div>
+</footer>
+
+</body>
+</html>

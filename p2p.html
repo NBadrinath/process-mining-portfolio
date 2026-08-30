@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procure-to-Pay Process Mining — Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <a href="index.html" style="text-decoration:none;"><div class="brand">Badri <span>//</span> Process Mining</div></a>
+    <nav>
+      <ul>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#usecases">Use cases</a></li>
+        <li><a href="index.html#analyzer">Try it</a></li>
+        <li><a href="index.html#contact" class="nav-cta">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<section class="uc-hero">
+  <div class="wrap">
+    <a href="index.html" class="back-link">&larr; Back to portfolio</a>
+    <div class="eyebrow">Procure-to-Pay (P2P)</div>
+    <h1>Where purchase-to-pay quietly bleeds cycle time and cash.</h1>
+    <p class="lede">Every PO, approval, goods receipt, and invoice leaves a timestamped trail in your ERP. Mined properly, that trail shows exactly where spend is leaking — before it shows up as a bad audit finding.</p>
+    <div class="hero-cta">
+      <a href="index.html#analyzer" class="btn btn-primary">Try the analyzer on your data</a>
+      <a href="index.html#contact" class="btn btn-ghost">Get in touch</a>
+    </div>
+  </div>
+</section>
+
+<section class="pain-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Where the value hides</div>
+      <h2>Three patterns that show up in almost every P2P event log</h2>
+      <p>These aren't hypothetical — they surface the moment you replay the process against the actual timestamps.</p>
+    </div>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <span class="pain-num">01 &middot; Leakage</span>
+        <h4>Maverick buying</h4>
+        <p>Purchases made outside approved contracts or preferred vendors, missing negotiated pricing entirely. Usually invisible until you trace PO creation against catalog and contract data.</p>
+      </div>
+      <div class="pain-card">
+        <span class="pain-num">02 &middot; Rework</span>
+        <h4>Three-way match failures</h4>
+        <p>PO, goods receipt, and invoice disagree on price or quantity, kicking the invoice into manual exception handling and delaying payment (or discount capture).</p>
+      </div>
+      <div class="pain-card">
+        <span class="pain-num">03 &middot; Delay</span>
+        <h4>Approval bottlenecks</h4>
+        <p>POs sitting in an approver's queue well past SLA, especially once a request is routed for exception approval — often the single biggest driver of cycle time variance.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="kpi-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">KPIs this engagement moves</div>
+      <h2>The metrics a steering committee actually tracks</h2>
+    </div>
+    <div class="kpi-detail-grid">
+      <div class="kpi-detail-card">
+        <h4>Touchless invoice rate</h4>
+        <div class="kpi-range"><span class="from">35%</span><span class="arrow">&rarr;</span><span class="to">70%</span></div>
+        <p>Share of invoices that post without manual intervention. The clearest signal of how much match-failure rework is happening upstream.</p>
+      </div>
+      <div class="kpi-detail-card">
+        <h4>Maverick buying spend</h4>
+        <div class="kpi-range"><span class="from">20%</span><span class="arrow">&rarr;</span><span class="to">8%</span></div>
+        <p>Percentage of total spend routed outside approved contracts or catalogs — direct, quantifiable savings once curbed.</p>
+      </div>
+      <div class="kpi-detail-card">
+        <h4>PO-to-payment cycle time</h4>
+        <div class="kpi-range"><span class="from">22 days</span><span class="arrow">&rarr;</span><span class="to">12 days</span></div>
+        <p>End-to-end duration from PO creation to payment clearing, broken down by the stage actually causing the delay.</p>
+      </div>
+      <div class="kpi-detail-card">
+        <h4>Early payment discount capture</h4>
+        <div class="kpi-range"><span class="from">&lt;20%</span><span class="arrow">&rarr;</span><span class="to">60%+</span></div>
+        <p>Share of eligible invoices paid inside the discount window — often left on the table purely due to approval delay.</p>
+      </div>
+    </div>
+    <p class="kpi-caveat">Ranges are typical benchmarks observed across similar P2P landscapes, not a guarantee for any specific client — actual movement depends on your process maturity, ERP configuration, and data quality.</p>
+  </div>
+</section>
+
+<section class="method-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">How I approach it</div>
+      <h2>From raw ERP tables to a prioritized fix list</h2>
+    </div>
+    <div class="method-steps">
+      <div class="method-step">
+        <div class="step-index">01</div>
+        <div><h4>Extract &amp; model the event log</h4><p>Pull PO, GR, and invoice tables from SAP/Oracle/your ERP and reconstruct the true case-activity-timestamp structure — the foundation everything else depends on.</p></div>
+      </div>
+      <div class="method-step">
+        <div class="step-index">02</div>
+        <div><h4>Build the KPI tree</h4><p>Define touchless rate, cycle time, and spend-compliance KPIs in PQL, validated against finance's own numbers so nobody argues with the dashboard.</p></div>
+      </div>
+      <div class="method-step">
+        <div class="step-index">03</div>
+        <div><h4>Surface deviations &amp; root causes</h4><p>Replay the process to find which vendor, buyer, plant, or approval path is driving the exceptions — not just that exceptions exist.</p></div>
+      </div>
+      <div class="method-step">
+        <div class="step-index">04</div>
+        <div><h4>Quantify business impact</h4><p>Translate each deviation into euros: discount missed, rework hours, working-capital drag — so the fix list is ranked by value, not noise.</p></div>
+      </div>
+      <div class="method-step">
+        <div class="step-index">05</div>
+        <div><h4>Prioritize &amp; support the fix</h4><p>Work with process owners to pilot the top interventions, then track the KPI tree post-change to confirm it actually moved.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="uc-cta-section">
+  <div class="wrap">
+    <h2>Want to see this on your own PO and invoice data?</h2>
+    <p>Upload a sample export to the live analyzer and get a first read in seconds — nothing leaves your browser.</p>
+    <div class="uc-cta-buttons">
+      <a href="index.html#analyzer" class="btn btn-primary">Try the analyzer</a>
+      <a href="index.html#contact" class="btn btn-ghost">Talk to me</a>
+    </div>
+  </div>
+</section>
+
+<section class="related-ucs">
+  <div class="wrap">
+    <h3>Other use cases</h3>
+    <div class="related-grid">
+      <a href="o2c.html" class="related-card"><span class="rc-name">Order-to-Cash</span><span class="rc-arrow">&rarr;</span></a>
+      <a href="r2r.html" class="related-card"><span class="rc-name">Record-to-Report</span><span class="rc-arrow">&rarr;</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <h2>Have a process worth looking at?</h2>
+      <div class="foot-links">
+        <a href="mailto:hello@example.com">hello@example.com</a>
+        <a href="index.html#usecases">Use cases</a>
+        <a href="index.html#analyzer">Try the analyzer</a>
+      </div>
+    </div>
+    <div class="foot-meta">Celonis EMS &middot; PQL &middot; Process mining &middot; Based in Andhra Pradesh, working globally</div>
+  </div>
+</footer>
+
+</body>
+</html>

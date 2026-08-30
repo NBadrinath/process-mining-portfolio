@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order-to-Cash Process Mining — Case Study</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <a href="index.html" style="text-decoration:none;"><div class="brand">Badri <span>//</span> Process Mining</div></a>
+    <nav>
+      <ul>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#usecases">Use cases</a></li>
+        <li><a href="index.html#analyzer">Try it</a></li>
+        <li><a href="index.html#contact" class="nav-cta">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</div>
+
+<section class="uc-hero">
+  <div class="wrap">
+    <a href="index.html" class="back-link">&larr; Back to portfolio</a>
+    <div class="eyebrow">Order-to-Cash (O2C)</div>
+    <h1>Your DSO problem is a process problem, not a collections problem.</h1>
+    <p class="lede">Order blocks, delivery slippage, and invoice errors compound quietly across the order lifecycle. Mining the order-to-cash flow shows exactly which step is adding days to your cash conversion cycle.</p>
+    <div class="hero-cta">
+      <a href="index.html#analyzer" class="btn btn-primary">Try the analyzer on your data</a>
+      <a href="index.html#contact" class="btn btn-ghost">Get in touch</a>
+    </div>
+  </div>
+</section>
+
+<section class="pain-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Where the value hides</div>
+      <h2>Three patterns that show up in almost every O2C event log</h2>
+      <p>Each one shows up as a distinct, replayable path variant once the order flow is mined end to end.</p>
+    </div>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <span class="pain-num">01 &middot; Delay</span>
+        <h4>Order blocks</h4>
+        <p>Credit holds, pricing errors, or missing master data stall orders before they even reach fulfillment — often for reasons that have nothing to do with the customer.</p>
+      </div>
+      <div class="pain-card">
+        <span class="pain-num">02 &middot; Rework</span>
+        <h4>Late or partial deliveries</h4>
+        <p>Delivery performance issues ripple downstream into disputes and deductions, which then drag out the invoice-to-cash step even further.</p>
+      </div>
+      <div class="pain-card">
+        <span class="pain-num">03 &middot; Leakage</span>
+        <h4>Manual invoice corrections</h4>
+        <p>Pricing or quantity errors caught late force invoice reissues, adding days to DSO and creating reconciliation headaches for the customer's AP team.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="kpi-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">KPIs this engagement moves</div>
+      <h2>The metrics a steering committee actually tracks</h2>
+    </div>
+    <div class="kpi-detail-grid">
+      <div class="kpi-detail-card">
+        <h4>Days Sales Outstanding</h4>
+        <div class="kpi-range"><span class="from">62 days</span><span class="arrow">&rarr;</span><span class="to">45 days</span></div>
+        <p>The headline metric finance already watches — mining shows which upstream step is actually adding the days.</p>
+      </div>
+      <div class="kpi-detail-card">
+        <h4>Order block frequency</h4>
+        <div class="kpi-range"><span class="from">25%</span><span class="arrow">&rarr;</span><span class="to">9%</span></div>
+        <p>Share of orders that hit at least one block before fulfillment — broken down by block reason and owning team.</p>
+      </div>
+      <div class="kpi-detail-card">
+        <h4>On-time-in-full delivery rate</h4>
+        <div class="kpi-range"><span class="from">80%</span><span class="arrow">&rarr;</span><span class="to">93%</span></div>
+        <p>The delivery-performance metric most tightly correlated with dispute rate and repeat-order behavior.</p>
+      </div>
+      <div class="kpi-detail-card">
+        <h4>Dispute &amp; deduction rate</h4>
+        <div class="kpi-range"><span class="from">7%</span><span class="arrow">&rarr;</span><span class="to">3%</span></div>
+        <p>Share of invoice value disputed or deducted by customers — a direct drag on both DSO and realized revenue.</p>
+      </div>
+    </div>
+    <p class="kpi-caveat">Ranges are typical benchmarks observed across similar O2C landscapes, not a guarantee for any specific client — actual movement depends on your process maturity, ERP configuration, and data quality.</p>
+  </div>
+</section>
+
+<section class="method-section">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">How I approach it</div>
+      <h2>From raw order tables to a prioritized fix list</h2>
+    </div>
+    <div class="method-steps">
+      <div class="method-step">
+        <div class="step-index">01</div>
+        <div><h4>Extract &amp; model the event log</h4><p>Pull sales order, delivery, and billing tables and reconstruct the true order-to-cash case structure, including every block and re-release.</p></div>
+      </div>
+      <div class="method-step">
+        <div class="step-index">02</div>
+        <div><h4>Build the KPI tree</h4><p>Define DSO, block frequency, and delivery-performance KPIs in PQL, validated against finance and logistics' own reporting.</p></div>
+      </div>
+      <div class="method-step">
+        <div class="step-index">03</div>
+        <div><h4>Surface deviations &amp; root causes</h4><p>Replay the process to find which customer, product line, plant, or block type is driving the delay — not just that delays exist.</p></div>
+      </div>
+      <div class="method-step">
+        <div class="step-index">04</div>
+        <div><h4>Quantify business impact</h4><p>Translate each deviation into days-of-DSO and euros of working capital, so the fix list is ranked by value, not noise.</p></div>
+      </div>
+      <div class="method-step">
+        <div class="step-index">05</div>
+        <div><h4>Prioritize &amp; support the fix</h4><p>Work with sales, logistics, and billing owners to pilot the top interventions, then track DSO post-change to confirm it moved.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="uc-cta-section">
+  <div class="wrap">
+    <h2>Want to see this on your own order and delivery data?</h2>
+    <p>Upload a sample export to the live analyzer and get a first read in seconds — nothing leaves your browser.</p>
+    <div class="uc-cta-buttons">
+      <a href="index.html#analyzer" class="btn btn-primary">Try the analyzer</a>
+      <a href="index.html#contact" class="btn btn-ghost">Talk to me</a>
+    </div>
+  </div>
+</section>
+
+<section class="related-ucs">
+  <div class="wrap">
+    <h3>Other use cases</h3>
+    <div class="related-grid">
+      <a href="p2p.html" class="related-card"><span class="rc-name">Procure-to-Pay</span><span class="rc-arrow">&rarr;</span></a>
+      <a href="r2r.html" class="related-card"><span class="rc-name">Record-to-Report</span><span class="rc-arrow">&rarr;</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <h2>Have a process worth looking at?</h2>
+      <div class="foot-links">
+        <a href="mailto:hello@example.com">hello@example.com</a>
+        <a href="index.html#usecases">Use cases</a>
+        <a href="index.html#analyzer">Try the analyzer</a>
+      </div>
+    </div>
+    <div class="foot-meta">Celonis EMS &middot; PQL &middot; Process mining &middot; Based in Andhra Pradesh, working globally</div>
+  </div>
+</footer>
+
+</body>
+</html>
